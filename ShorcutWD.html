@@ -138,7 +138,8 @@
         </div>
 
         <div id="outputSection" class="output-section">
-            <h2>Hasil untuk di TEMPEL</h2>
+            <!-- PERUBAHAN ADA DI BAWAH INI -->
+            <h2>Total dari nominal</h2>
             <button id="copyButton">Salin Tabel</button>
             <div id="tableContainer">
                 <!-- Tabel akan di-generate oleh JavaScript di sini -->
@@ -227,12 +228,12 @@
             `;
 
             data.forEach(row => {
-                // Format nominal tanpa "Rp" menggunakan toLocaleString
-                const formattedNominal = row.nominal.toLocaleString('id-ID');
+                // Format nominal untuk ditampilkan di web menggunakan 'en-US' agar menggunakan koma
+                const formattedNominal = row.nominal.toLocaleString('en-US');
                 
                 tableHTML += `
                     <tr>
-                        <td>${formattedNominal}</td>
+                        <td data-raw-value="${row.nominal}">${formattedNominal}</td>
                         <td>${row.nomorRekening}</td>
                         <td>${row.id}</td>
                         <td>${row.namaRekening}</td>
@@ -248,31 +249,25 @@
             tableContainer.innerHTML = tableHTML;
         }
 
-        // --- PERUBAHAN ADA DI BAGIAN INI ---
         copyButton.addEventListener('click', () => {
             const table = document.querySelector('#tableContainer table');
             if (!table) return;
 
-            // Array untuk menyimpan setiap baris teks
             const rowsText = [];
-
-            // PERUBAHAN: Hanya pilih baris data di dalam <tbody>, bukan semua <tr>
             const dataRows = table.querySelectorAll('tbody tr');
             
             dataRows.forEach(row => {
-                // Karena ini baris data, kita hanya perlu mengambil <td>
                 const cells = row.querySelectorAll('td');
-                // Ambil teks dari setiap sel dan gabungkan dengan tab
-                const rowText = Array.from(cells).map(cell => cell.textContent).join('\t');
+                const rowText = Array.from(cells).map(cell => {
+                    // Saat menyalin, gunakan angka asli dari data-raw-value
+                    return cell.dataset.rawValue || cell.textContent;
+                }).join('\t');
                 rowsText.push(rowText);
             });
 
-            // Gabungkan semua baris dengan newline untuk membuat teks akhir
             const tableText = rowsText.join('\n');
             
-            // Gunakan Clipboard API modern
             navigator.clipboard.writeText(tableText).then(() => {
-                // Beri tahu user bahwa teks sudah tersalin
                 const originalText = copyButton.innerText;
                 copyButton.innerText = 'Tersalin!';
                 copyButton.disabled = true;
@@ -280,7 +275,7 @@
                 setTimeout(() => {
                     copyButton.innerText = originalText;
                     copyButton.disabled = false;
-                }, 2000); // Kembalikan teks setelah 2 detik
+                }, 2000);
             }).catch(err => {
                 console.error('Gagal menyalin teks: ', err);
                 alert('Gagal menyalin teks, silakan salin secara manual.');
