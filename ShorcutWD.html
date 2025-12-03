@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Shortcut Withdraw</title>
+    <style>
+        /* CSS untuk tampilan */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Penting agar padding tidak menambah lebar */
+            font-size: 16px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #3498db;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        #copyButton {
+            background-color: #2ecc71;
+        }
+        #copyButton:hover {
+            background-color: #27ae60;
+        }
+        #copyButton:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .output-section {
+            margin-top: 40px;
+            display: none; /* Sembunyikan awalnya */
+        }
+        .output-section h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #ecf0f1;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        td {
+            word-wrap: break-word; /* Mencegah teks panjang merusak layout */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Web Shortcut Withdraw</h1>
+
+        <div class="input-form">
+            <div class="input-group">
+                <label for="nominal">Nominal Total</label>
+                <input type="text" id="nominal" placeholder="Contoh: 300000000">
+            </div>
+            <div class="input-group">
+                <label for="nomorRekening">Nomor Rekening</label>
+                <input type="text" id="nomorRekening" placeholder="Masukkan nomor rekening">
+            </div>
+            <div class="input-group">
+                <label for="id">ID</label>
+                <input type="text" id="id" placeholder="Masukkan ID">
+            </div>
+            <div class="input-group">
+                <label for="namaRekening">Nama Rekening</label>
+                <input type="text" id="namaRekening" placeholder="Masukkan nama rekening">
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button id="processButton">Proses</button>
+        </div>
+
+        <div id="outputSection" class="output-section">
+            <h2>Hasil untuk di TEMPEL</h2>
+            <button id="copyButton">Salin Tabel</button>
+            <div id="tableContainer">
+                <!-- Tabel akan di-generate oleh JavaScript di sini -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript untuk logika
+        const processButton = document.getElementById('processButton');
+        const copyButton = document.getElementById('copyButton');
+        const outputSection = document.getElementById('outputSection');
+        const tableContainer = document.getElementById('tableContainer');
+
+        const nominalInput = document.getElementById('nominal');
+        const nomorRekeningInput = document.getElementById('nomorRekening');
+        const idInput = document.getElementById('id');
+        const namaRekeningInput = document.getElementById('namaRekening');
+
+        processButton.addEventListener('click', () => {
+            // 1. Ambil nilai dari input
+            const nominalString = nominalInput.value.replace(/\D/g, '');
+            const totalAmount = parseInt(nominalString, 10);
+            
+            const nomorRekening = nomorRekeningInput.value;
+            const id = idInput.value;
+            const namaRekening = namaRekeningInput.value;
+
+            // 2. Validasi input
+            if (isNaN(totalAmount) || totalAmount <= 0) {
+                alert('Masukkan nominal yang valid (angka positif).');
+                return;
+            }
+            if (!nomorRekening || !id || !namaRekening) {
+                alert('Semua kolom (Nomor Rekening, ID, Nama Rekening) harus diisi.');
+                return;
+            }
+
+            // 3. Proses pemecahan nominal
+            const chunkSize = 40000000; // 40 Juta
+            const fullChunks = Math.floor(totalAmount / chunkSize);
+            const remainder = totalAmount % chunkSize;
+
+            let rows = [];
+
+            // Tambahkan baris untuk setiap potongan 40jt
+            for (let i = 0; i < fullChunks; i++) {
+                rows.push({
+                    nominal: chunkSize,
+                    nomorRekening: nomorRekening,
+                    id: id,
+                    namaRekening: namaRekening
+                });
+            }
+
+            // Tambahkan baris untuk sisa nominal jika ada
+            if (remainder > 0) {
+                rows.push({
+                    nominal: remainder,
+                    nomorRekening: nomorRekening,
+                    id: id,
+                    namaRekening: namaRekening
+                });
+            }
+            
+            // 4. Buat dan tampilkan tabel
+            generateTable(rows);
+            outputSection.style.display = 'block'; // Tampilkan bagian hasil
+        });
+
+        function generateTable(data) {
+            // Kosongkan container tabel sebelumnya
+            tableContainer.innerHTML = '';
+
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nominal</th>
+                            <th>Nomor Rekening</th>
+                            <th>ID</th>
+                            <th>Nama Rekening</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach(row => {
+                // Format nominal tanpa "Rp" menggunakan toLocaleString
+                const formattedNominal = row.nominal.toLocaleString('id-ID');
+                
+                tableHTML += `
+                    <tr>
+                        <td>${formattedNominal}</td>
+                        <td>${row.nomorRekening}</td>
+                        <td>${row.id}</td>
+                        <td>${row.namaRekening}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            tableContainer.innerHTML = tableHTML;
+        }
+
+        // --- PERUBAHAN ADA DI BAGIAN INI ---
+        copyButton.addEventListener('click', () => {
+            const table = document.querySelector('#tableContainer table');
+            if (!table) return;
+
+            // Array untuk menyimpan setiap baris teks
+            const rowsText = [];
+
+            // PERUBAHAN: Hanya pilih baris data di dalam <tbody>, bukan semua <tr>
+            const dataRows = table.querySelectorAll('tbody tr');
+            
+            dataRows.forEach(row => {
+                // Karena ini baris data, kita hanya perlu mengambil <td>
+                const cells = row.querySelectorAll('td');
+                // Ambil teks dari setiap sel dan gabungkan dengan tab
+                const rowText = Array.from(cells).map(cell => cell.textContent).join('\t');
+                rowsText.push(rowText);
+            });
+
+            // Gabungkan semua baris dengan newline untuk membuat teks akhir
+            const tableText = rowsText.join('\n');
+            
+            // Gunakan Clipboard API modern
+            navigator.clipboard.writeText(tableText).then(() => {
+                // Beri tahu user bahwa teks sudah tersalin
+                const originalText = copyButton.innerText;
+                copyButton.innerText = 'Tersalin!';
+                copyButton.disabled = true;
+
+                setTimeout(() => {
+                    copyButton.innerText = originalText;
+                    copyButton.disabled = false;
+                }, 2000); // Kembalikan teks setelah 2 detik
+            }).catch(err => {
+                console.error('Gagal menyalin teks: ', err);
+                alert('Gagal menyalin teks, silakan salin secara manual.');
+            });
+        });
+
+    </script>
+
+</body>
+</html>
