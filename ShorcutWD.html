@@ -106,6 +106,20 @@
         td {
             word-wrap: break-word; /* Mencegah teks panjang merusak layout */
         }
+        
+        /* Style untuk Tabel Cross-Check Baru */
+        .crosscheck-table {
+            margin-bottom: 30px; /* Beri jarak dengan elemen di bawahnya */
+            background-color: #f8f9fa; /* Warna latar sedikit berbeda */
+        }
+        .crosscheck-table th {
+            background-color: #e9ecef; /* Warna header yang lebih gelap */
+        }
+        .crosscheck-table .total-row {
+            font-weight: bold;
+            background-color: #e9ecef; /* Sorot baris total */
+        }
+
     </style>
 </head>
 
@@ -138,11 +152,14 @@
         </div>
 
         <div id="outputSection" class="output-section">
-            <!-- PERUBAHAN ADA DI BAWAH INI -->
-            <h2>Total dari nominal</h2>
+            <!-- Tabel Cross-Check akan muncul di sini -->
+            <div id="crosscheckContainer">
+                <!-- Konten akan di-generate oleh JavaScript -->
+            </div>
+
             <button id="copyButton">Salin Tabel</button>
             <div id="tableContainer">
-                <!-- Tabel akan di-generate oleh JavaScript di sini -->
+                <!-- Tabel utama akan di-generate oleh JavaScript di sini -->
             </div>
         </div>
     </div>
@@ -153,6 +170,7 @@
         const copyButton = document.getElementById('copyButton');
         const outputSection = document.getElementById('outputSection');
         const tableContainer = document.getElementById('tableContainer');
+        const crosscheckContainer = document.getElementById('crosscheckContainer'); // Tambahkan selector untuk kontainer cross-check
 
         const nominalInput = document.getElementById('nominal');
         const nomorRekeningInput = document.getElementById('nomorRekening');
@@ -184,14 +202,22 @@
             const remainder = totalAmount % chunkSize;
 
             let rows = [];
+            let crosscheckData = []; // Array untuk data tabel cross-check
 
             // Tambahkan baris untuk setiap potongan 40jt
             for (let i = 0; i < fullChunks; i++) {
+                const chunkAmount = chunkSize;
                 rows.push({
-                    nominal: chunkSize,
+                    nominal: chunkAmount,
                     nomorRekening: nomorRekening,
                     id: id,
                     namaRekening: namaRekening
+                });
+                
+                // Siapkan data untuk tabel cross-check
+                crosscheckData.push({
+                    part: i + 1,
+                    amount: chunkAmount
                 });
             }
 
@@ -203,18 +229,73 @@
                     id: id,
                     namaRekening: namaRekening
                 });
+
+                // Siapkan data untuk tabel cross-check
+                crosscheckData.push({
+                    part: fullChunks + 1,
+                    amount: remainder
+                });
             }
             
             // 4. Buat dan tampilkan tabel
+            generateCrosscheckTable(totalAmount, crosscheckData); // Panggil fungsi untuk membuat tabel cross-check
             generateTable(rows);
             outputSection.style.display = 'block'; // Tampilkan bagian hasil
         });
+
+        /**
+         * Fungsi untuk membuat dan menampilkan tabel cross-check nominal.
+         * @param {number} totalAmount - Nominal total awal.
+         * @param {Array<Object>} data - Array data pecahan nominal.
+         */
+        function generateCrosscheckTable(totalAmount, data) {
+            // Kosongkan container tabel sebelumnya
+            crosscheckContainer.innerHTML = '';
+
+            let tableHTML = `
+                <h2>Cross-Check Nominal</h2>
+                <table class="crosscheck-table">
+                    <thead>
+                        <tr>
+                            <th>Deskripsi</th>
+                            <th>Nominal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nominal Total</td>
+                            <td data-raw-value="${totalAmount}">${totalAmount.toLocaleString('id-ID')}</td>
+                        </tr>
+            `;
+
+            // Tambahkan baris untuk setiap bagian nominal
+            data.forEach(item => {
+                tableHTML += `
+                    <tr>
+                        <td>Bagian ${item.part}</td>
+                        <td data-raw-value="${item.amount}">${item.amount.toLocaleString('id-ID')}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                        <tr class="total-row">
+                            <td>Total Pecahan</td>
+                            <td data-raw-value="${totalAmount}">${totalAmount.toLocaleString('id-ID')}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+            
+            crosscheckContainer.innerHTML = tableHTML;
+        }
 
         function generateTable(data) {
             // Kosongkan container tabel sebelumnya
             tableContainer.innerHTML = '';
 
             let tableHTML = `
+                <h2>Hasil Pemecahan</h2>
                 <table>
                     <thead>
                         <tr>
@@ -228,8 +309,8 @@
             `;
 
             data.forEach(row => {
-                // Format nominal untuk ditampilkan di web menggunakan 'en-US' agar menggunakan koma
-                const formattedNominal = row.nominal.toLocaleString('en-US');
+                // Format nominal untuk ditampilkan di web menggunakan 'id-ID' agar sesuai format Indonesia
+                const formattedNominal = row.nominal.toLocaleString('id-ID');
                 
                 tableHTML += `
                     <tr>
