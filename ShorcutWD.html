@@ -1,223 +1,529 @@
-import customtkinter as ctk
-from tkinter import messagebox
-from tkinter import ttk
-import re
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Shortcut Withdraw Pro</title>
+    <!-- Font Awesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-hover: #3a53d0;
+            --success-color: #2ec4b6;
+            --success-hover: #25a096;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
 
-# Mengatur tampilan tema
-ctk.set_appearance_mode("System")  # Bisa diganti "Light" atau "Dark"
-ctk.set_default_color_theme("blue")  # Tema warna
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-class WithdrawApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Web Shortcut Withdraw - Python Version")
-        self.root.geometry("900x700")
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        /* Container Utama */
+        .container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 850px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Grid Layout untuk Input */
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-main);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px 12px 12px 40px; /* Padding kiri lebih besar untuk ikon */
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+        }
+
+        /* Tombol */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #processButton {
+            background-color: var(--primary-color);
+            box-shadow: 0 4px 6px rgba(67, 97, 238, 0.2);
+        }
+
+        #processButton:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        #copyButton {
+            background-color: var(--success-color);
+            box-shadow: 0 4px 6px rgba(46, 196, 182, 0.2);
+        }
+
+        #copyButton:hover {
+            background-color: var(--success-hover);
+            transform: translateY(-2px);
+        }
+
+        #copyButton:disabled {
+            background-color: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Output Section */
+        .output-section {
+            margin-top: 40px;
+            display: none; /* Sembunyikan awalnya */
+            border-top: 1px solid var(--border-color);
+            padding-top: 30px;
+        }
+
+        /* Card Crosscheck */
+        .crosscheck-card {
+            background-color: #ecfdf5; /* Light Green Tint */
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .crosscheck-label {
+            color: #065f46;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .crosscheck-value {
+            color: #047857;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        /* Tabel */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead {
+            background-color: #f8fafc;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background-color: #f9fafb;
+        }
+
+        td:nth-child(1) { /* Kolom Nominal */
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Toast Notification */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s, bottom 0.3s;
+        }
+
+        #toast.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 50px;
+        }
         
-        # Layout Utama
-        self.main_frame = ctk.CTkFrame(root)
-        self.main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        /* Animasi Masuk */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
 
-        # Judul
-        self.label_title = ctk.CTkLabel(
-            self.main_frame, 
-            text="Withdraw Besar", 
-            font=ctk.CTkFont(size=24, weight="bold")
-        )
-        self.label_title.pack(pady=(0, 20))
+<body>
 
-        # Bagian Input Form
-        self.input_frame = ctk.CTkFrame(self.main_frame)
-        self.input_frame.pack(fill="x", pady=10)
+    <div class="container">
+        <header>
+            <h1>Withdraw Besar</h1>
+            <p class="subtitle">Tools pemecahan nominal otomatis (Max 40 Juta/trx)</p>
+        </header>
 
-        self.create_input_field("Nominal Total", "nominal_entry")
-        self.create_input_field("Nomor Rekening", "nomor_rekening_entry")
-        self.create_input_field("ID", "id_entry")
-        self.create_input_field("Nama Rekening", "nama_rekening_entry")
+        <div class="input-grid">
+            <div class="input-group">
+                <label for="nominal">Nominal Total</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                    <input type="text" id="nominal" placeholder="Contoh: 300000000">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="nomorRekening">Nomor Rekening</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-credit-card"></i>
+                    <input type="text" id="nomorRekening" placeholder="Masukkan nomor rekening">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="id">ID</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-fingerprint"></i>
+                    <input type="text" id="id" placeholder="Masukkan ID User">
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="namaRekening">Nama Rekening</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-user"></i>
+                    <input type="text" id="namaRekening" placeholder="Masukkan nama rekening">
+                </div>
+            </div>
+        </div>
 
-        # Tombol Proses
-        self.btn_process = ctk.CTkButton(
-            self.main_frame, 
-            text="Proses", 
-            command=self.process_data,
-            height=40,
-            font=ctk.CTkFont(size=16, weight="bold")
-        )
-        self.btn_process.pack(pady=20, fill="x")
+        <div class="button-group">
+            <button id="processButton">
+                <i class="fa-solid fa-gears"></i> Proses
+            </button>
+        </div>
 
-        # Bagian Output (Cross Check & Tabel)
-        self.output_frame = ctk.CTkFrame(self.main_frame)
-        self.output_frame.pack(fill="both", expand=True, pady=10)
-        
-        # Label Total (Cross Check)
-        self.lbl_total_display = ctk.CTkLabel(
-            self.output_frame,
-            text="",
-            font=ctk.CTkFont(size=18, weight="bold"),
-            text_color="#2ecc71"
-        )
-        self.lbl_total_display.pack(pady=10)
-
-        # Setup Tabel (Treeview dengan styling CustomTkinter)
-        self.setup_table()
-
-        # Tombol Salin
-        self.btn_copy = ctk.CTkButton(
-            self.output_frame,
-            text="Salin Tabel",
-            fg_color="#2ecc71",
-            hover_color="#27ae60",
-            command=self.copy_table,
-            state="disabled" # Disabled awal
-        )
-        self.btn_copy.pack(pady=10)
-
-    def create_input_field(self, label_text, attr_name):
-        """Helper untuk membuat input field"""
-        frame = ctk.CTkFrame(self.input_frame, fg_color="transparent")
-        frame.pack(fill="x", pady=5)
-        
-        label = ctk.CTkLabel(frame, text=label_text, anchor="w")
-        label.pack(fill="x", padx=5)
-        
-        entry = ctk.CTkEntry(frame, placeholder_text=f"Masukkan {label_text.lower()}")
-        entry.pack(fill="x", padx=5, pady=(0, 10))
-        
-        # Simpan referensi entry ke atribut class agar bisa diakses nanti
-        setattr(self, attr_name, entry)
-
-    def setup_table(self):
-        """Mengatur tampilan tabel data"""
-        # Scrollbar
-        scrollbar = ttk.Scrollbar(self.output_frame)
-        scrollbar.pack(side="right", fill="y")
-
-        # Kolom Tabel
-        columns = ("nominal", "nomor_rekening", "id", "nama_rekening")
-        
-        self.tree = ttk.Treeview(
-            self.output_frame, 
-            columns=columns, 
-            show="headings", 
-            yscrollcommand=scrollbar.set
-        )
-        
-        # Mengatur Header Kolom
-        self.tree.heading("nominal", text="Nominal")
-        self.tree.heading("nomor_rekening", text="Nomor Rekening")
-        self.tree.heading("id", text="ID")
-        self.tree.heading("nama_rekening", text="Nama Rekening")
-
-        # Mengatur Lebar Kolom
-        self.tree.column("nominal", width=150, anchor="e")
-        self.tree.column("nomor_rekening", width=200, anchor="center")
-        self.tree.column("id", width=100, anchor="center")
-        self.tree.column("nama_rekening", width=250, anchor="w")
-
-        # Styling Tabel agar sinkron dengan tema
-        style = ttk.Style()
-        style.theme_use("clam") # Menggunakan theme dasar yang mudah dimodifikasi
-        
-        bg_color = self.output_frame.cget("fg_color")
-        fg_color = "black" if ctk.get_appearance_mode() == "Light" else "white"
-        
-        style.configure("Treeview", 
-            background="#f0f0f0", 
-            foreground="black", 
-            fieldbackground="#f0f0f0", 
-            rowheight=25,
-            font=("Helvetica", 11)
-        )
-        style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"))
-        
-        self.tree.pack(fill="both", expand=True)
-
-    def format_rupiah(self, amount):
-        """Format angka menjadi koma pemisah ribuan (contoh: 40.000.000)"""
-        return "{:,}".format(amount)
-
-    def process_data(self):
-        # 1. Ambil dan bersihkan input
-        nominal_str = re.sub(r'\D', '', self.nominal_entry.get())
-        
-        try:
-            total_amount = int(nominal_str)
-        except ValueError:
-            messagebox.showerror("Error", "Masukkan nominal yang valid (angka).")
-            return
-
-        nomor_rekening = self.nomor_rekening_entry.get()
-        id_val = self.id_entry.get()
-        nama_rekening = self.nama_rekening_entry.get()
-
-        # 2. Validasi
-        if total_amount <= 0:
-            messagebox.showerror("Error", "Nominal harus lebih besar dari 0.")
-            return
-        if not nomor_rekening or not id_val or not nama_rekening:
-            messagebox.showerror("Error", "Semua kolom harus diisi.")
-            return
-
-        # 3. Proses Pemecahan (Logic Sama seperti JS)
-        chunk_size = 40000000  # 40 Juta
-        full_chunks = total_amount // chunk_size
-        remainder = total_amount % chunk_size
-        
-        data_rows = []
-
-        for _ in range(full_chunks):
-            data_rows.append(chunk_size)
+        <div id="outputSection" class="output-section">
             
-        if remainder > 0:
-            data_rows.append(remainder)
+            <!-- Tampilan Cross-Check -->
+            <div class="crosscheck-card">
+                <span class="crosscheck-label">Total Cross-Check yang Diproses</span>
+                <div id="crosscheckValue" class="crosscheck-value">0</div>
+            </div>
 
-        # 4. Update UI
-        # Tampilkan Total Cross Check
-        formatted_total = self.format_rupiah(total_amount)
-        self.lbl_total_display.configure(text=f"Total Cross-Check: {formatted_total}")
+            <h2 style="text-align:center; font-size:18px; margin-bottom:15px; color:var(--text-main);">Hasil Pemecahan</h2>
+            
+            <div class="table-container">
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th>Nominal</th>
+                            <th>Nomor Rekening</th>
+                            <th>ID</th>
+                            <th>Nama Rekening</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data akan di-generate di sini -->
+                    </tbody>
+                </table>
+            </div>
 
-        # Bersihkan tabel lama
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+            <div class="button-group">
+                <button id="copyButton">
+                    <i class="fa-regular fa-copy"></i> Salin Tabel
+                </button>
+            </div>
+        </div>
+    </div>
 
-        # Isi tabel baru
-        for nominal in data_rows:
-            formatted_nominal = self.format_rupiah(nominal)
-            # Kita simpan nilai asli di 'values' tuple tersembunyi atau map manual jika perlu,
-            # tapi untuk Treeview sederhana, kita masukkan formatted text.
-            # Agar copy berhasil rapi, kita perlu data mentah, jadi simpan dalam list self.raw_data
-            self.tree.insert("", "end", values=(formatted_nominal, nomor_rekening, id_val, nama_rekening))
-        
-        # Simpan data mentah untuk fungsi copy nanti (karena treeview hanya menampilkan string)
-        self.raw_data = data_rows
+    <!-- Toast Notification -->
+    <div id="toast"><i class="fa-solid fa-check-circle"></i> Tabel berhasil disalin!</div>
 
-        # Aktifkan tombol copy
-        self.btn_copy.configure(state="normal")
+    <script>
+        // Referensi Elemen DOM
+        const processButton = document.getElementById('processButton');
+        const copyButton = document.getElementById('copyButton');
+        const outputSection = document.getElementById('outputSection');
+        const crosscheckValue = document.getElementById('crosscheckValue');
+        const tableBody = document.querySelector('#resultTable tbody');
+        const toast = document.getElementById("toast");
 
-    def copy_table(self):
-        """Menyalin data tabel ke clipboard berformat Tab Separated"""
-        if not hasattr(self, 'raw_data'):
-            return
+        const nominalInput = document.getElementById('nominal');
+        const nomorRekeningInput = document.getElementById('nomorRekening');
+        const idInput = document.getElementById('id');
+        const namaRekeningInput = document.getElementById('namaRekening');
 
-        nomor_rekening = self.nomor_rekening_entry.get()
-        id_val = self.id_entry.get()
-        nama_rekening = self.nama_rekening_entry.get()
-        
-        rows_text = []
-        
-        for amount in self.raw_data:
-            # Format: Nominal(tab)No Rek(tab)ID(tab)Nama
-            row_str = f"{amount}\t{nomor_rekening}\t{id_val}\t{nama_rekening}"
-            rows_text.append(row_str)
+        // Fungsi Format Angka (Ribuan)
+        function formatNumber(num) {
+            return num.toLocaleString('en-US'); // Menggunakan koma sebagai pemisah ribuan
+        }
 
-        final_text = "\n".join(rows_text)
+        // Event Listener Tombol Proses
+        processButton.addEventListener('click', () => {
+            // 1. Ambil dan Bersihkan Nilai
+            const nominalString = nominalInput.value.replace(/\D/g, '');
+            const totalAmount = parseInt(nominalString, 10);
+            
+            const nomorRekening = nomorRekeningInput.value.trim();
+            const id = idInput.value.trim();
+            const namaRekening = namaRekeningInput.value.trim();
 
-        # Salin ke clipboard
-        self.root.clipboard_clear()
-        self.root.clipboard_append(final_text)
-        
-        messagebox.showinfo("Berhasil", "Tabel berhasil disalin ke clipboard!")
+            // 2. Validasi Input
+            if (isNaN(totalAmount) || totalAmount <= 0) {
+                showToast("Masukkan nominal yang valid.", true);
+                return;
+            }
+            if (!nomorRekening || !id || !namaRekening) {
+                showToast("Mohon lengkapi semua kolom data.", true);
+                return;
+            }
 
-if __name__ == "__main__":
-    root = ctk.CTk()
-    app = WithdrawApp(root)
-    root.mainloop()
+            // 3. Proses Pemecahan Nominal
+            const chunkSize = 40000000; // 40 Juta per transaksi
+            const fullChunks = Math.floor(totalAmount / chunkSize);
+            const remainder = totalAmount % chunkSize;
+
+            let rowsData = [];
+
+            // Loop untuk potongan 40jt
+            for (let i = 0; i < fullChunks; i++) {
+                rowsData.push({
+                    nominal: chunkSize,
+                    nomorRekening: nomorRekening,
+                    id: id,
+                    namaRekening: namaRekening
+                });
+            }
+
+            // Tambahkan sisa jika ada
+            if (remainder > 0) {
+                rowsData.push({
+                    nominal: remainder,
+                    nomorRekening: nomorRekening,
+                    id: id,
+                    namaRekening: namaRekening
+                });
+            }
+            
+            // 4. Update Tampilan UI
+            // Tampilkan Total Crosscheck
+            crosscheckValue.textContent = formatNumber(totalAmount);
+            
+            // Render Tabel
+            renderTable(rowsData);
+            
+            // Tampilkan Section Output dengan efek smooth scroll
+            outputSection.style.display = 'block';
+            
+            // Scroll otomatis ke hasil
+            outputSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // Fungsi Render Tabel
+        function renderTable(data) {
+            tableBody.innerHTML = ''; // Bersihkan tabel sebelumnya
+
+            data.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                
+                // Menambahkan delay animasi sederhana per baris
+                tr.style.animation = `fadeIn 0.3s ease-out forwards ${index * 0.05}s`;
+                tr.style.opacity = '0'; // Awalnya transparan untuk animasi
+
+                tr.innerHTML = `
+                    <td data-raw="${row.nominal}">${formatNumber(row.nominal)}</td>
+                    <td>${row.nomorRekening}</td>
+                    <td>${row.id}</td>
+                    <td>${row.namaRekening}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Event Listener Tombol Salin
+        copyButton.addEventListener('click', () => {
+            const rows = tableBody.querySelectorAll('tr');
+            if (rows.length === 0) return;
+
+            let clipboardText = "";
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                // Ambil nilai mentah (tanpa format koma) dari atribut data-raw jika ada, 
+                // jika tidak ada ambil textContent biasa
+                const nominalRaw = cells[0].getAttribute('data-raw') || cells[0].textContent;
+                const rek = cells[1].textContent;
+                const id = cells[2].textContent;
+                const nama = cells[3].textContent;
+
+                // Format Tab Separated untuk Excel/Spreadsheet
+                clipboardText += `${nominalRaw}\t${rek}\t${id}\t${nama}\n`;
+            });
+
+            // Tulis ke clipboard
+            navigator.clipboard.writeText(clipboardText.trim()).then(() => {
+                showToast("Tabel berhasil disalin!");
+                
+                // Efek visual pada tombol
+                const originalText = copyButton.innerHTML;
+                copyButton.innerHTML = '<i class="fa-solid fa-check"></i> Tersalin';
+                copyButton.disabled = true;
+                
+                setTimeout(() => {
+                    copyButton.innerHTML = originalText;
+                    copyButton.disabled = false;
+                }, 2000);
+            }).catch(err => {
+                showToast("Gagal menyalin teks.", true);
+                console.error('Error copying text: ', err);
+            });
+        });
+
+        // Fungsi Toast Notification (Pengganti Alert)
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = "show";
+            
+            if (isError) {
+                toast.style.backgroundColor = "#ef4444"; // Merah untuk error
+            } else {
+                toast.style.backgroundColor = "#333"; // Hitam untuk sukses
+            }
+
+            setTimeout(() => { 
+                toast.className = toast.className.replace("show", ""); 
+            }, 3000);
+        }
+    </script>
+
+</body>
+</html>
