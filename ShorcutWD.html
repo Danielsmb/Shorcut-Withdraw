@@ -1,335 +1,223 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Shortcut Withdraw</title>
-    <style>
-        /* CSS untuk tampilan */
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 800px;
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 25px;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #34495e;
-        }
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box; /* Penting agar padding tidak menambah lebar */
-            font-size: 16px;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-        button {
-            padding: 12px 25px;
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-            background-color: #3498db;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        button:hover {
-            background-color: #2980b9;
-        }
-        #copyButton {
-            background-color: #2ecc71;
-        }
-        #copyButton:hover {
-            background-color: #27ae60;
-        }
-        #copyButton:disabled {
-            background-color: #bdc3c7;
-            cursor: not-allowed;
-        }
-        .output-section {
-            margin-top: 40px;
-            display: none; /* Sembunyikan awalnya */
-        }
-        .output-section h2 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #ecf0f1;
-            font-weight: bold;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        td {
-            word-wrap: break-word; /* Mencegah teks panjang merusak layout */
-        }
+import customtkinter as ctk
+from tkinter import messagebox
+from tkinter import ttk
+import re
+
+# Mengatur tampilan tema
+ctk.set_appearance_mode("System")  # Bisa diganti "Light" atau "Dark"
+ctk.set_default_color_theme("blue")  # Tema warna
+
+class WithdrawApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Web Shortcut Withdraw - Python Version")
+        self.root.geometry("900x700")
         
-        /* Style untuk Tabel Cross-Check yang disederhanakan */
-        .crosscheck-table {
-            margin-bottom: 30px; /* Beri jarak dengan elemen di bawahnya */
-            background-color: #f8f9fa; /* Warna latar sedikit berbeda */
-        }
-        .crosscheck-table th {
-            background-color: #e9ecef; /* Warna header yang lebih gelap */
-        }
-        .crosscheck-table td {
-            font-size: 1.1em;
-            font-weight: bold;
-            text-align: right; /* Rata kanan untuk nominal */
-        }
-    </style>
-</head>
+        # Layout Utama
+        self.main_frame = ctk.CTkFrame(root)
+        self.main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-<body>
+        # Judul
+        self.label_title = ctk.CTkLabel(
+            self.main_frame, 
+            text="Withdraw Besar", 
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        self.label_title.pack(pady=(0, 20))
 
-    <div class="container">
-        <h1>Withdraw Besar</h1>
+        # Bagian Input Form
+        self.input_frame = ctk.CTkFrame(self.main_frame)
+        self.input_frame.pack(fill="x", pady=10)
 
-        <div class="input-form">
-            <div class="input-group">
-                <label for="nominal">Nominal Total</label>
-                <input type="text" id="nominal" placeholder="Contoh: 300000000">
-            </div>
-            <div class="input-group">
-                <label for="nomorRekening">Nomor Rekening</label>
-                <input type="text" id="nomorRekening" placeholder="Masukkan nomor rekening">
-            </div>
-            <div class="input-group">
-                <label for="id">ID</label>
-                <input type="text" id="id" placeholder="Masukkan ID">
-            </div>
-            <div class="input-group">
-                <label for="namaRekening">Nama Rekening</label>
-                <input type="text" id="namaRekening" placeholder="Masukkan nama rekening">
-            </div>
-        </div>
+        self.create_input_field("Nominal Total", "nominal_entry")
+        self.create_input_field("Nomor Rekening", "nomor_rekening_entry")
+        self.create_input_field("ID", "id_entry")
+        self.create_input_field("Nama Rekening", "nama_rekening_entry")
 
-        <div class="button-group">
-            <button id="processButton">Proses</button>
-        </div>
+        # Tombol Proses
+        self.btn_process = ctk.CTkButton(
+            self.main_frame, 
+            text="Proses", 
+            command=self.process_data,
+            height=40,
+            font=ctk.CTkFont(size=16, weight="bold")
+        )
+        self.btn_process.pack(pady=20, fill="x")
 
-        <div id="outputSection" class="output-section">
-            <!-- Tabel Cross-Check sederhana akan muncul di sini -->
-            <div id="crosscheckContainer">
-                <!-- Konten akan di-generate oleh JavaScript -->
-            </div>
+        # Bagian Output (Cross Check & Tabel)
+        self.output_frame = ctk.CTkFrame(self.main_frame)
+        self.output_frame.pack(fill="both", expand=True, pady=10)
+        
+        # Label Total (Cross Check)
+        self.lbl_total_display = ctk.CTkLabel(
+            self.output_frame,
+            text="",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color="#2ecc71"
+        )
+        self.lbl_total_display.pack(pady=10)
 
-            <button id="copyButton">Salin Tabel</button>
-            <div id="tableContainer">
-                <!-- Tabel utama akan di-generate oleh JavaScript di sini -->
-            </div>
-        </div>
-    </div>
+        # Setup Tabel (Treeview dengan styling CustomTkinter)
+        self.setup_table()
 
-    <script>
-        // JavaScript untuk logika
-        const processButton = document.getElementById('processButton');
-        const copyButton = document.getElementById('copyButton');
-        const outputSection = document.getElementById('outputSection');
-        const tableContainer = document.getElementById('tableContainer');
-        const crosscheckContainer = document.getElementById('crosscheckContainer');
+        # Tombol Salin
+        self.btn_copy = ctk.CTkButton(
+            self.output_frame,
+            text="Salin Tabel",
+            fg_color="#2ecc71",
+            hover_color="#27ae60",
+            command=self.copy_table,
+            state="disabled" # Disabled awal
+        )
+        self.btn_copy.pack(pady=10)
 
-        const nominalInput = document.getElementById('nominal');
-        const nomorRekeningInput = document.getElementById('nomorRekening');
-        const idInput = document.getElementById('id');
-        const namaRekeningInput = document.getElementById('namaRekening');
+    def create_input_field(self, label_text, attr_name):
+        """Helper untuk membuat input field"""
+        frame = ctk.CTkFrame(self.input_frame, fg_color="transparent")
+        frame.pack(fill="x", pady=5)
+        
+        label = ctk.CTkLabel(frame, text=label_text, anchor="w")
+        label.pack(fill="x", padx=5)
+        
+        entry = ctk.CTkEntry(frame, placeholder_text=f"Masukkan {label_text.lower()}")
+        entry.pack(fill="x", padx=5, pady=(0, 10))
+        
+        # Simpan referensi entry ke atribut class agar bisa diakses nanti
+        setattr(self, attr_name, entry)
 
-        processButton.addEventListener('click', () => {
-            // 1. Ambil nilai dari input
-            const nominalString = nominalInput.value.replace(/\D/g, '');
-            const totalAmount = parseInt(nominalString, 10);
+    def setup_table(self):
+        """Mengatur tampilan tabel data"""
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(self.output_frame)
+        scrollbar.pack(side="right", fill="y")
+
+        # Kolom Tabel
+        columns = ("nominal", "nomor_rekening", "id", "nama_rekening")
+        
+        self.tree = ttk.Treeview(
+            self.output_frame, 
+            columns=columns, 
+            show="headings", 
+            yscrollcommand=scrollbar.set
+        )
+        
+        # Mengatur Header Kolom
+        self.tree.heading("nominal", text="Nominal")
+        self.tree.heading("nomor_rekening", text="Nomor Rekening")
+        self.tree.heading("id", text="ID")
+        self.tree.heading("nama_rekening", text="Nama Rekening")
+
+        # Mengatur Lebar Kolom
+        self.tree.column("nominal", width=150, anchor="e")
+        self.tree.column("nomor_rekening", width=200, anchor="center")
+        self.tree.column("id", width=100, anchor="center")
+        self.tree.column("nama_rekening", width=250, anchor="w")
+
+        # Styling Tabel agar sinkron dengan tema
+        style = ttk.Style()
+        style.theme_use("clam") # Menggunakan theme dasar yang mudah dimodifikasi
+        
+        bg_color = self.output_frame.cget("fg_color")
+        fg_color = "black" if ctk.get_appearance_mode() == "Light" else "white"
+        
+        style.configure("Treeview", 
+            background="#f0f0f0", 
+            foreground="black", 
+            fieldbackground="#f0f0f0", 
+            rowheight=25,
+            font=("Helvetica", 11)
+        )
+        style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"))
+        
+        self.tree.pack(fill="both", expand=True)
+
+    def format_rupiah(self, amount):
+        """Format angka menjadi koma pemisah ribuan (contoh: 40.000.000)"""
+        return "{:,}".format(amount)
+
+    def process_data(self):
+        # 1. Ambil dan bersihkan input
+        nominal_str = re.sub(r'\D', '', self.nominal_entry.get())
+        
+        try:
+            total_amount = int(nominal_str)
+        except ValueError:
+            messagebox.showerror("Error", "Masukkan nominal yang valid (angka).")
+            return
+
+        nomor_rekening = self.nomor_rekening_entry.get()
+        id_val = self.id_entry.get()
+        nama_rekening = self.nama_rekening_entry.get()
+
+        # 2. Validasi
+        if total_amount <= 0:
+            messagebox.showerror("Error", "Nominal harus lebih besar dari 0.")
+            return
+        if not nomor_rekening or not id_val or not nama_rekening:
+            messagebox.showerror("Error", "Semua kolom harus diisi.")
+            return
+
+        # 3. Proses Pemecahan (Logic Sama seperti JS)
+        chunk_size = 40000000  # 40 Juta
+        full_chunks = total_amount // chunk_size
+        remainder = total_amount % chunk_size
+        
+        data_rows = []
+
+        for _ in range(full_chunks):
+            data_rows.append(chunk_size)
             
-            const nomorRekening = nomorRekeningInput.value;
-            const id = idInput.value;
-            const namaRekening = namaRekeningInput.value;
+        if remainder > 0:
+            data_rows.append(remainder)
 
-            // 2. Validasi input
-            if (isNaN(totalAmount) || totalAmount <= 0) {
-                alert('Masukkan nominal yang valid (angka positif).');
-                return;
-            }
-            if (!nomorRekening || !id || !namaRekening) {
-                alert('Semua kolom (Nomor Rekening, ID, Nama Rekening) harus diisi.');
-                return;
-            }
+        # 4. Update UI
+        # Tampilkan Total Cross Check
+        formatted_total = self.format_rupiah(total_amount)
+        self.lbl_total_display.configure(text=f"Total Cross-Check: {formatted_total}")
 
-            // 3. Proses pemecahan nominal
-            const chunkSize = 40000000; // 40 Juta
-            const fullChunks = Math.floor(totalAmount / chunkSize);
-            const remainder = totalAmount % chunkSize;
+        # Bersihkan tabel lama
+        for item in self.tree.get_children():
+            self.tree.delete(item)
 
-            let rows = [];
+        # Isi tabel baru
+        for nominal in data_rows:
+            formatted_nominal = self.format_rupiah(nominal)
+            # Kita simpan nilai asli di 'values' tuple tersembunyi atau map manual jika perlu,
+            # tapi untuk Treeview sederhana, kita masukkan formatted text.
+            # Agar copy berhasil rapi, kita perlu data mentah, jadi simpan dalam list self.raw_data
+            self.tree.insert("", "end", values=(formatted_nominal, nomor_rekening, id_val, nama_rekening))
+        
+        # Simpan data mentah untuk fungsi copy nanti (karena treeview hanya menampilkan string)
+        self.raw_data = data_rows
 
-            // Tambahkan baris untuk setiap potongan 40jt
-            for (let i = 0; i < fullChunks; i++) {
-                rows.push({
-                    nominal: chunkSize,
-                    nomorRekening: nomorRekening,
-                    id: id,
-                    namaRekening: namaRekening
-                });
-            }
+        # Aktifkan tombol copy
+        self.btn_copy.configure(state="normal")
 
-            // Tambahkan baris untuk sisa nominal jika ada
-            if (remainder > 0) {
-                rows.push({
-                    nominal: remainder,
-                    nomorRekening: nomorRekening,
-                    id: id,
-                    namaRekening: namaRekening
-                });
-            }
-            
-            // 4. Buat dan tampilkan tabel
-            generateCrosscheckTable(totalAmount); // Hanya membutuhkan totalAmount
-            generateTable(rows);
-            outputSection.style.display = 'block'; // Tampilkan bagian hasil
-        });
+    def copy_table(self):
+        """Menyalin data tabel ke clipboard berformat Tab Separated"""
+        if not hasattr(self, 'raw_data'):
+            return
 
-        /**
-         * Fungsi untuk membuat dan menampilkan tabel cross-check sederhana.
-         * @param {number} totalAmount - Nominal total awal.
-         */
-        function generateCrosscheckTable(totalAmount) {
-            // Kosongkan container tabel sebelumnya
-            crosscheckContainer.innerHTML = '';
+        nomor_rekening = self.nomor_rekening_entry.get()
+        id_val = self.id_entry.get()
+        nama_rekening = self.nama_rekening_entry.get()
+        
+        rows_text = []
+        
+        for amount in self.raw_data:
+            # Format: Nominal(tab)No Rek(tab)ID(tab)Nama
+            row_str = f"{amount}\t{nomor_rekening}\t{id_val}\t{nama_rekening}"
+            rows_text.append(row_str)
 
-            // PERUBAHAN: Menggunakan 'en-US' untuk format koma sebagai pemisah ribuan
-            let tableHTML = `
-                <table class="crosscheck-table">
-                    <thead>
-                        <tr>
-                            <th>Nominal Total yang Diproses</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>${totalAmount.toLocaleString('en-US')}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
-            
-            crosscheckContainer.innerHTML = tableHTML;
-        }
+        final_text = "\n".join(rows_text)
 
-        function generateTable(data) {
-            // Kosongkan container tabel sebelumnya
-            tableContainer.innerHTML = '';
+        # Salin ke clipboard
+        self.root.clipboard_clear()
+        self.root.clipboard_append(final_text)
+        
+        messagebox.showinfo("Berhasil", "Tabel berhasil disalin ke clipboard!")
 
-            let tableHTML = `
-                <h2>Hasil Pemecahan</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nominal</th>
-                            <th>Nomor Rekening</th>
-                            <th>ID</th>
-                            <th>Nama Rekening</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            data.forEach(row => {
-                // PERUBAHAN: Menggunakan 'en-US' untuk format koma sebagai pemisah ribuan
-                const formattedNominal = row.nominal.toLocaleString('en-US');
-                
-                tableHTML += `
-                    <tr>
-                        <td data-raw-value="${row.nominal}">${formattedNominal}</td>
-                        <td>${row.nomorRekening}</td>
-                        <td>${row.id}</td>
-                        <td>${row.namaRekening}</td>
-                    </tr>
-                `;
-            });
-
-            tableHTML += `
-                    </tbody>
-                </table>
-            `;
-            
-            tableContainer.innerHTML = tableHTML;
-        }
-
-        copyButton.addEventListener('click', () => {
-            const table = document.querySelector('#tableContainer table');
-            if (!table) return;
-
-            const rowsText = [];
-            const dataRows = table.querySelectorAll('tbody tr');
-            
-            dataRows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                const rowText = Array.from(cells).map(cell => {
-                    // Saat menyalin, gunakan angka asli dari data-raw-value
-                    return cell.dataset.rawValue || cell.textContent;
-                }).join('\t');
-                rowsText.push(rowText);
-            });
-
-            const tableText = rowsText.join('\n');
-            
-            navigator.clipboard.writeText(tableText).then(() => {
-                const originalText = copyButton.innerText;
-                copyButton.innerText = 'Tersalin!';
-                copyButton.disabled = true;
-
-                setTimeout(() => {
-                    copyButton.innerText = originalText;
-                    copyButton.disabled = false;
-                }, 2000);
-            }).catch(err => {
-                console.error('Gagal menyalin teks: ', err);
-                alert('Gagal menyalin teks, silakan salin secara manual.');
-            });
-        });
-
-    </script>
-
-</body>
-</html>
+if __name__ == "__main__":
+    root = ctk.CTk()
+    app = WithdrawApp(root)
+    root.mainloop()
