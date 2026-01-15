@@ -291,7 +291,7 @@
     <div class="container">
         <header>
             <h1>Withdraw Besar</h1>
-            <p class="subtitle">Tools pemecahan nominal otomatis (Max 35 Juta/trx)</p>
+            <p class="subtitle">Tools pemecahan nominal otomatis (Max 40 Juta/trx)</p>
         </header>
 
         <div class="input-grid">
@@ -408,7 +408,7 @@
             }
 
             // 3. Proses Pemecahan Nominal
-            const chunkSize = 35000000; // 40 Juta per transaksi
+            const chunkSize = 40000000; // 40 Juta per transaksi
             const fullChunks = Math.floor(totalAmount / chunkSize);
             const remainder = totalAmount % chunkSize;
 
